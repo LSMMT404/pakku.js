@@ -1,7 +1,7 @@
-// (C) 2017-2019 @xmcp. THIS PROJECT IS LICENSED UNDER GPL VERSION 3. SEE `LICENSE.txt`.
+// 2017-2020 @xmcp. THIS PROJECT IS LICENSED UNDER GPL VERSION 3. SEE `LICENSE.txt`.
 
-var DETAILS_MAX_TIMEDELTA=10;
-var GRAPH_MAX_TIMEDELTA=5;
+var DETAILS_MAX_TIMEDELTA_MS=10*1000;
+var GRAPH_MAX_TIMEDELTA_MS=5*1000;
 var GRAPH_DENSITY_POWER=.8;
 
 function fluctlight_cleanup(root_elem) {
@@ -42,7 +42,7 @@ function inject_fluctlight_graph(bar_elem,_version,new_elem) {
             DURATION=(
                 (total_time_elem ? parse_time(total_time_elem.textContent) : 0) ||
                 (video_elem ? video_elem.duration : 0)
-            );
+            )*1000+1000;
         }
     }
     getduration();
@@ -67,9 +67,9 @@ function inject_fluctlight_graph(bar_elem,_version,new_elem) {
         }
         function apply_dispval(arr) {
             return function(p) {
-                var dispv=dispval(p.orig_str);
-                arr[Math.max(0,block(p.time))]+=dispv;
-                arr[block(p.time+GRAPH_MAX_TIMEDELTA)+1]-=dispv;
+                var dispv=dispval(p.ir_obj.content);
+                arr[Math.max(0,block(p.ir_obj.time_ms))]+=dispv;
+                arr[block(p.ir_obj.time_ms+GRAPH_MAX_TIMEDELTA_MS)+1]-=dispv;
             }
         }
         
@@ -83,7 +83,7 @@ function inject_fluctlight_graph(bar_elem,_version,new_elem) {
         }
 
         D.forEach(function(d) {
-            if(!d.peers.length || d.peers[0].mode=='8'/*code*/) return;
+            if(!d.peers.length || d.peers[0].ir_obj.mode==8/*code*/) return;
             apply_dispval(den_aft)(d.peers[0]);
             d.peers.forEach(apply_dispval(den_bef));
         });
@@ -105,7 +105,7 @@ function inject_fluctlight_graph(bar_elem,_version,new_elem) {
         ctx.beginPath();
         ctx.moveTo(0,HEIGHT);
         for(var w=0;w<WIDTH;w++)
-        ctx.lineTo(w,HEIGHT-Math.pow(den_bef[w],GRAPH_DENSITY_POWER)/2);
+            ctx.lineTo(w,HEIGHT-Math.pow(den_bef[w],GRAPH_DENSITY_POWER)/2);
         ctx.lineTo(WIDTH-1,HEIGHT);
         ctx.closePath();
         // before
@@ -130,10 +130,16 @@ function inject_fluctlight_graph(bar_elem,_version,new_elem) {
         ctx.globalAlpha=.8;
         ctx.fill();
 
-        var hlblock=(hltime===undefined)?undefined:block(hltime);
+        var hlblock=(hltime===undefined)?undefined:block(hltime*1000+1000);
         if(hlblock!==undefined) {
             // add gradient
-            var GRALENGTH=100;
+            var GRALENGTH=90;
+            var EDGESIZE=GRALENGTH*.9;
+            
+            var curblock=hlblock;
+            if(hlblock<EDGESIZE) hlblock=EDGESIZE;
+            else if(hlblock>WIDTH-EDGESIZE) hlblock=WIDTH-EDGESIZE;
+
             var gra=ctx.createLinearGradient(hlblock-GRALENGTH,0,hlblock+GRALENGTH,0);
             gra.addColorStop(0,'rgba(255,255,255,0)')
             gra.addColorStop(.1,'rgba(255,255,255,1)')
@@ -145,8 +151,8 @@ function inject_fluctlight_graph(bar_elem,_version,new_elem) {
             ctx.fillRect(hlblock-GRALENGTH,0,GRALENGTH*2,HEIGHT);
             // highlight current time
             ctx.globalCompositeOperation='source-over';
-            drawline(hlblock,Math.pow(den_bef[hlblock],GRAPH_DENSITY_POWER)/2,2,'#cc0000',1);
-            drawline(hlblock,Math.pow(den_aft[hlblock],GRAPH_DENSITY_POWER)/2,2,'#0000cc',1);
+            drawline(curblock,Math.pow(den_bef[curblock],GRAPH_DENSITY_POWER)/2,2,'#cc0000',1);
+            drawline(curblock,Math.pow(den_aft[curblock],GRAPH_DENSITY_POWER)/2,2,'#0000cc',1);
         }
     }
     redraw();
@@ -236,16 +242,18 @@ function inject_fluctlight_details(bar_elem,_version) {
                 fluct.style.height=0;
                 fluct.textContent='';
                 var time=parse_time(time_str);
+                var time_ms=time*1000+1000;
                 var danmus=[];
                 for(var i=0;i<D.length;i++) {
                     var d=D[i];
-                    if(d.peers.length && time-d.peers[0].time>=0 && time-d.peers[0].time<=DETAILS_MAX_TIMEDELTA && d.peers[0].mode!='8'/*code*/)
+                    if(d.peers.length && time_ms-d.peers[0].ir_obj.time_ms>=0 && time_ms-d.peers[0].ir_obj.time_ms<=DETAILS_MAX_TIMEDELTA_MS && d.peers[0].mode!=8/*code*/)
                         danmus.push(d);
                 }
+
                 danmus=danmus.sort(function(a,b) {
                     return (
                         a.peers.length - b.peers.length ||
-                        mode_prio(b.peers[0].mode) - mode_prio(a.peers[0].mode) ||
+                        mode_prio(b.peers[0].ir_obj.mode) - mode_prio(a.peers[0].ir_obj.mode) ||
                         (time-b) - (time-a) ||
                         0
                     );

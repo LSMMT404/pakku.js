@@ -1,4 +1,4 @@
-// (C) 2017-2019 @xmcp. THIS PROJECT IS LICENSED UNDER GPL VERSION 3. SEE `LICENSE.txt`.
+// 2017-2020 @xmcp. THIS PROJECT IS LICENSED UNDER GPL VERSION 3. SEE `LICENSE.txt`.
 
 function fromholyjson_orempry(str) {
     try {
@@ -53,7 +53,6 @@ function loadconfig() {
     window.SCROLL_THRESHOLD=parseInt(localStorage['SCROLL_THRESHOLD']||1200);
     // 其他
     window.POPUP_BADGE=localStorage['POPUP_BADGE'];
-    window.FLASH_NOTIF=localStorage['FLASH_NOTIF']==='on';
     window.CLOUD_SYNC=localStorage['CLOUD_SYNC']==='on';
     
     load_update_breaker();
@@ -100,7 +99,6 @@ function initconfig() {
     localStorage['SCROLL_THRESHOLD']=localStorage['SCROLL_THRESHOLD']||1200;
     // 其他
     localStorage['POPUP_BADGE']=localStorage['POPUP_BADGE']||'percent';
-    localStorage['FLASH_NOTIF']=localStorage['FLASH_NOTIF']||'on';
     localStorage['CLOUD_SYNC']=localStorage['CLOUD_SYNC']||'off';
     loadconfig();
 }

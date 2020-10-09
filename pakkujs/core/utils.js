@@ -1,4 +1,4 @@
-// (C) 2017-2019 @xmcp. THIS PROJECT IS LICENSED UNDER GPL VERSION 3. SEE `LICENSE.txt`.
+// 2017-2020 @xmcp. THIS PROJECT IS LICENSED UNDER GPL VERSION 3. SEE `LICENSE.txt`.
 
 var TEST_MODE=navigator.userAgent.indexOf('xmcp_pakku_test_runner')!==-1;
 var IS_FIREFOX=false;
@@ -16,7 +16,7 @@ var BOUNCE={
 };
 var TEMPRULES={}; // id -> {FORCELIST: [], WHITELIST: []}
 
-function check_xml_bounce(cid) {
+function check_ir_bounce(cid) {
     var res=cid==BOUNCE.cid && (+new Date())-BOUNCE.set_time<5000;
     if(res) {
         BOUNCE.set_time=-1;
